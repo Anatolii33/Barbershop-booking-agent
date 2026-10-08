@@ -1,0 +1,379 @@
+{
+  "name": "Barbershop - AI Booking Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        240,
+        -1360
+      ],
+      "id": "7ead0e88-88ac-4e1e-80e9-a83066e78db8",
+      "name": "Chat Trigger"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are a barbershop booking assistant.\nDo your best to translate relative user dates to the dates the tools use.\nToday is {{ $now }}\n\nWhen the user asks to book a time, always check availability first."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        464,
+        -1360
+      ],
+      "id": "6dfa923b-9a07-4e2d-add3-36e0e26d0b22",
+      "name": "Booking Agent"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        624,
+        -1072
+      ],
+      "id": "0b5cce65-159b-4412-8835-dd17cf79caca",
+      "name": "Chat Memory (Postgres)",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        -1056
+      ],
+      "id": "627d00eb-2e97-4b14-93f5-d5052f273f98",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Create an event in Google Calendar for the service, time and barber the user selected.\nAll dates should be in Europe/Lisbon timezone and in ISO 8601 format\nexample format:\n2025-07-01T14:30:00+01:00",
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_BOOK_APPOINTMENT_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start', `the time that the user selected for a specific service.\n\nISO 8601 format.`, 'string') }}",
+            "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('end', `It should be a calculation from the start time, plus the service duration  the user selected.\n\nISO 8601 format`, 'string') }}",
+            "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('description', `This should contain the following information.\n{ Service name  } at { Barber name  }`, 'string') }}",
+            "Calendar": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Calendar', `The Google Calendar ID of the barber's calendar the user chose, exactly as returned by Get Calendars and Services (the calendar_id from Check Free Slots). Ask the user if you do not have it.`, 'string') }}",
+            "event_title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('event_title', `\nThis should contain the following information.\n{ Service name  } at { Barber name  }`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "start",
+              "displayName": "start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "end",
+              "displayName": "end",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_title",
+              "displayName": "event_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Calendar",
+              "displayName": "Calendar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -368,
+        -1104
+      ],
+      "id": "ce212825-2c4e-4d22-bd30-5e6fbba3baee",
+      "name": "Book Appointment"
+    },
+    {
+      "parameters": {
+        "path": "barbershop-booking"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        -432,
+        -1376
+      ],
+      "id": "9b8258df-f653-43b2-81a8-87d0b8c0aaf2",
+      "name": "MCP Server Trigger"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://YOUR_N8N_DOMAIN/mcp/barbershop-booking",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.4,
+      "position": [
+        848,
+        -1088
+      ],
+      "id": "6832c785-2c23-410e-9a36-756e759dbf36",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to get free time windows for a specific service.\nIt returns, for every barber (calendar_id) who offers that service, the free windows inside working hours that are long enough for the service.\nTo check one specific barber, call it and use only that barber's calendar_id from the result.\n\nAll dates should be in Europe/Lisbon time zone and in ISO 8601 format with offset.\nExample format:\n2025-07-01T14:30:00+01:00",
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_FREE_SLOTS_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start', `The starting time boundary for searching available timeslots.\nThis value should be extracted from  the user's query.\nShould be in ISO 8601 format.`, 'string') }}",
+            "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('end', `The ending  time boundary for searching available timeslots.\nThis value should be extracted from  the user's query\nShould be in ISO 8601 format`, 'string') }}",
+            "service": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('service', `Service ID for the search query. Map the user's request to the list of services. Must be a number.`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "start",
+              "displayName": "start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "end",
+              "displayName": "end",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -176,
+        -1088
+      ],
+      "id": "1519df03-cebf-4aed-805c-dada26620678",
+      "name": "Check Free Slots"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to get all available services and barber calendars for the current barbershop.\nYou should call this tool at start of each conversation, to get relevant data.",
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_GET_CALENDARS_SERVICES_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        -1104
+      ],
+      "id": "e3a91d73-b16b-4f21-a75a-a492b1b70d38",
+      "name": "Get Calendars and Services"
+    },
+    {
+      "parameters": {
+        "content": "## Setup\n1. Import the three sub-workflows and set their IDs in the 3 tool nodes (Book Appointment, Check Free Slots, Get Calendars and Services).\n2. Replace `YOUR_N8N_DOMAIN` in **MCP Client** with your n8n URL (path must match **MCP Server Trigger**).\n3. Activate the sub-workflows and this workflow, then open the chat.",
+        "height": 230,
+        "width": 820
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -1640
+      ],
+      "id": "7748c7a0-2a8c-4074-a712-695aaca6128a",
+      "name": "Note: Setup"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Booking Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Memory (Postgres)": {
+      "ai_memory": [
+        [
+          {
+            "node": "Booking Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Booking Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book Appointment": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "Booking Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Free Slots": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Calendars and Services": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "nodeGroups": [],
+  "tags": []
+}

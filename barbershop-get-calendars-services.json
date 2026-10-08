@@ -1,0 +1,305 @@
+{
+  "name": "Barbershop - Get Calendars & Services",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -96
+      ],
+      "id": "ca44a455-e4f6-42fc-bcff-d33b8dd3a35e",
+      "name": "Manual Trigger"
+    },
+    {
+      "parameters": {
+        "path": "get-calendars-services",
+        "options": {},
+        "responseMode": "responseNode"
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -384,
+        -288
+      ],
+      "id": "5e1cb26d-af8a-4500-96f6-d85e77168295",
+      "name": "Webhook (Get Calendars & Services)"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -384,
+        128
+      ],
+      "id": "7dd00825-5d8d-4ea5-8236-f5469a7eb1da",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -96
+      ],
+      "id": "284fa323-e62b-4ef1-bf37-796e67ff796f",
+      "name": "Aggregate Calendars"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "search",
+        "workspaceId": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_WORKSPACE_ID",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_BASE_ID",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_CALENDARS_TABLE_ID",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        -144,
+        -96
+      ],
+      "id": "99955f9d-54d0-403e-b484-7b137587de04",
+      "name": "Get Calendars",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "NocoDB API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "search",
+        "workspaceId": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_WORKSPACE_ID",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_BASE_ID",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_SERVICES_TABLE_ID",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        320,
+        -96
+      ],
+      "id": "ea8225cc-f78a-41c1-a57c-ced0b1b0c8bc",
+      "name": "Get Services",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "NocoDB API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        544,
+        -96
+      ],
+      "id": "be697d91-89e0-455a-9e71-5c16b130709b",
+      "name": "Aggregate Services"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fe726f4a-4ca6-40c4-bc82-a6f275cfa7b7",
+              "name": "Service",
+              "value": "={{ $json.data }}",
+              "type": "array"
+            },
+            {
+              "id": "2562d457-b901-47ad-a35b-1b72ef0b19a1",
+              "name": "Calendars",
+              "value": "={{ $('Aggregate Calendars').item.json.data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        768,
+        -96
+      ],
+      "id": "6c4c2807-22c6-49ec-b2e4-35c4788844a9",
+      "name": "Build Response"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        992,
+        -96
+      ],
+      "id": "041be2d2-c26d-4727-aee4-da653d11b565",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "## Get Calendars & Services\nReturns all barbers (calendars) and services from NocoDB as one JSON object `{ Calendars: [...], Service: [...] }`.\nCalled by the MCP tool **Get Calendars and Services**. The webhook and manual trigger are for testing.",
+        "height": 200,
+        "width": 700
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        -420
+      ],
+      "id": "7697df86-d5cd-4833-904d-f355066ddf9d",
+      "name": "Note: Purpose"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Calendars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Calendars": {
+      "main": [
+        [
+          {
+            "node": "Get Services",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Calendars": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Calendars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Services": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Services",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Services": {
+      "main": [
+        [
+          {
+            "node": "Build Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get Calendars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (Get Calendars & Services)": {
+      "main": [
+        [
+          {
+            "node": "Get Calendars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "nodeGroups": [],
+  "tags": []
+}

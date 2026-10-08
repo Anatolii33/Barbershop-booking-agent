@@ -1,0 +1,535 @@
+{
+  "name": "Barbershop - Free Slots",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "start"
+            },
+            {
+              "name": "end"
+            },
+            {
+              "name": "service"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -720,
+        -1072
+      ],
+      "id": "7b0c257f-1cd8-4a9e-bdd0-04a12dd010e7",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "free-slots",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -912,
+        -1632
+      ],
+      "id": "3253870a-c8aa-4049-a6bd-c7f426760cc4",
+      "name": "Webhook (Free Slots)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a3687412-7a43-4086-aabd-95c5e62e349a",
+              "name": "start",
+              "value": "={{ $json.body.start }}",
+              "type": "string"
+            },
+            {
+              "id": "4776705b-655f-49f1-8b57-c4ad14459195",
+              "name": "end",
+              "value": "={{ $json.body.end }}",
+              "type": "string"
+            },
+            {
+              "id": "0817cd22-cd32-45e7-9ba0-1fe7de5c873a",
+              "name": "service",
+              "value": "={{ $json.body.service }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -592,
+        -1584
+      ],
+      "id": "1076ce33-7155-480d-8cba-08452b8d4b67",
+      "name": "Map Webhook Body"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f60b9a3a-f097-4651-b4a7-e6f6a01f4db6",
+              "name": "start",
+              "value": "={{ $json.start }}",
+              "type": "string"
+            },
+            {
+              "id": "052cf898-884d-4094-8e9d-234eed901b27",
+              "name": "end",
+              "value": "={{ $json.end }}",
+              "type": "string"
+            },
+            {
+              "id": "12ac5dae-a009-401f-858b-bf2b400fd971",
+              "name": "timeZone",
+              "value": "Europe/Lisbon",
+              "type": "string"
+            },
+            {
+              "id": "538c67ac-57d7-45d1-a628-271c964f7afe",
+              "name": "service",
+              "value": "={{ $json.service }}",
+              "type": "number"
+            },
+            {
+              "id": "bf630b45-bdfd-41d1-a55e-57912f04bfd0",
+              "name": "workStart",
+              "value": 8,
+              "type": "number"
+            },
+            {
+              "id": "1a798b62-321f-4964-977f-31ba3d6954f6",
+              "name": "workEnd",
+              "value": 20,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -448,
+        -1248
+      ],
+      "id": "f0a6fb4d-992d-454b-90d1-a34eb9ebd1f3",
+      "name": "Set Parameters"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "search",
+        "workspaceId": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_WORKSPACE_ID",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_BASE_ID",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_CALENDARS_TABLE_ID",
+          "mode": "id"
+        },
+        "limit": 10,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        -224,
+        -1248
+      ],
+      "id": "2fe61e49-5ad3-4dd8-9894-45552072567c",
+      "name": "Get Calendars",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "NocoDB API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d92ae06e-f9bc-4b2f-b937-cdbfe3b2abad",
+              "leftValue": "={{ $json.fields['Service IDs'] }}",
+              "rightValue": "={{ $('Set Parameters').item.json.service }}",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        -1248
+      ],
+      "id": "63f2d25b-5fc2-46e0-9502-8641c804bcf4",
+      "name": "Filter by Service"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        208,
+        -1248
+      ],
+      "id": "943d89ef-47e2-433f-9221-69425778a34f",
+      "name": "Aggregate Calendars"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "search",
+        "workspaceId": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_WORKSPACE_ID",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_BASE_ID",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_NOCODB_SERVICES_TABLE_ID",
+          "mode": "id"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        432,
+        -1248
+      ],
+      "id": "38d6320e-00a3-481f-88a2-d76d64d77f0c",
+      "name": "Get Services",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "NocoDB API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -1248
+      ],
+      "id": "fba5f9f7-c59c-4cf4-8750-395d11a280a7",
+      "name": "Aggregate Services"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2b691edf-752f-40d2-b643-b377a4e468b6",
+              "name": "calendars",
+              "value": "={{ $('Aggregate Calendars').item.json.data.map(c => ({ id: c.fields['Calendar ID'] })) }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        720,
+        -1248
+      ],
+      "id": "3da85017-ddb9-4ce8-85fe-2015fc7178df",
+      "name": "Build Calendar List"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/calendar/v3/freeBusy",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleCalendarOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"timeMin\": \"{{ $('Set Parameters').item.json.start }}\",\n  \"timeMax\": \"{{ $('Set Parameters').item.json.end }}\",\n  \"timeZone\": \"{{ $('Set Parameters').item.json.timeZone }}\",\n  \"items\": {{ JSON.stringify($json.calendars) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        944,
+        -1248
+      ],
+      "id": "6fc5ee21-f56e-4a2a-bf15-c7d403f4ec49",
+      "name": "Get Free Busy",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Calendar OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Inputs from \"Set Parameters\"\nconst params = $('Set Parameters').first().json;\nconst { start, end, workStart, workEnd } = params;\nconst serviceId = params.service;\n\n// Service duration (minutes) from the \"Services\" table\nconst services = $('Aggregate Services').first().json.data || [];\nconst service = services.find(\n  (s) => String(s.id) === String(serviceId) || (s.fields && String(s.fields['Record ID']) === String(serviceId))\n);\nif (!service) {\n  throw new Error(`Service \"${serviceId}\" was not found in the Services table`);\n}\nconst duration = Number(service.fields['Duration, min']);\n\n// Busy periods per calendar from the Google Calendar freeBusy API\nconst freeBusy = $('Get Free Busy').first().json;\nconst calendars = freeBusy.calendars || {};\n\n// --- Time helpers -----------------------------------------------------------\n// All calculations use the UTC offset of the \"start\" string (e.g. +01:00).\n// A \"local\" date is a Date shifted by that offset and read with getUTC*() methods,\n// so the result does not depend on the server time zone.\nfunction parseOffsetMinutes(str) {\n  if (/Z$/.test(str)) return 0;\n  const m = str.match(/([+-])(\\d{2}):?(\\d{2})$/);\n  if (!m) return 0;\n  return (m[1] === '+' ? 1 : -1) * (Number(m[2]) * 60 + Number(m[3]));\n}\n\nconst OFFSET = parseOffsetMinutes(start);\nconst pad = (n) => String(n).padStart(2, '0');\nconst OFFSET_STR =\n  (OFFSET < 0 ? '-' : '+') + pad(Math.floor(Math.abs(OFFSET) / 60)) + ':' + pad(Math.abs(OFFSET) % 60);\n\nconst toLocal = (date) => new Date(date.getTime() + OFFSET * 60000);\n\nfunction format(local) {\n  return (\n    `${local.getUTCFullYear()}-${pad(local.getUTCMonth() + 1)}-${pad(local.getUTCDate())}` +\n    `T${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}:${pad(local.getUTCSeconds())}${OFFSET_STR}`\n  );\n}\n\n// --- Free windows for one calendar ------------------------------------------\nfunction getFreeWindows(busyPeriods) {\n  const rangeStart = toLocal(new Date(start));\n  const rangeEnd = toLocal(new Date(end));\n  const busy = busyPeriods\n    .map((b) => ({ start: toLocal(new Date(b.start)), end: toLocal(new Date(b.end)) }))\n    .sort((a, b) => a.start - b.start);\n\n  const result = [];\n  const DAY = 24 * 60 * 60 * 1000;\n  let day = new Date(Date.UTC(rangeStart.getUTCFullYear(), rangeStart.getUTCMonth(), rangeStart.getUTCDate()));\n\n  for (; day < rangeEnd; day = new Date(day.getTime() + DAY)) {\n    // Working hours of this day, limited to the requested range\n    const from = new Date(Math.max(day.getTime() + workStart * 3600000, rangeStart.getTime()));\n    const to = new Date(Math.min(day.getTime() + workEnd * 3600000, rangeEnd.getTime()));\n    if (from >= to) continue;\n\n    // Walk through the sorted busy periods; overlapping ones are merged naturally\n    let cursor = from;\n    for (const b of busy) {\n      if (b.end <= cursor) continue;\n      if (b.start >= to) break;\n      if (b.start > cursor) pushWindow(result, cursor, b.start);\n      if (b.end > cursor) cursor = b.end;\n      if (cursor >= to) break;\n    }\n    if (cursor < to) pushWindow(result, cursor, to);\n  }\n  return result;\n}\n\nfunction pushWindow(list, from, to) {\n  // Keep only windows long enough for the service\n  if (to.getTime() - from.getTime() >= duration * 60000) {\n    list.push({ 'slot start': format(from), 'slot end': format(to), duration });\n  }\n}\n\n// --- One result item per calendar (barber) ----------------------------------\nconst results = [];\nfor (const [calendarId, data] of Object.entries(calendars)) {\n  if (!data || typeof data !== 'object' || !('busy' in data)) continue;\n  results.push({ json: { calendar_id: calendarId, slots: getFreeWindows(data.busy || []) } });\n}\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        -1248
+      ],
+      "id": "3930fd0e-c643-435a-b4ad-522454006d6b",
+      "name": "Calculate Free Slots"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        -1248
+      ],
+      "id": "daa116e8-04ca-48b2-a8d1-c06b0e1a9c11",
+      "name": "Aggregate Results"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1584,
+        -1248
+      ],
+      "id": "0b303333-7ccc-4348-ae9f-8c2c53d7a7aa",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "## Free Slots\n**Inputs:** `start`, `end` (ISO 8601 with offset), `service` (service ID).\n**Flow:** barbers who offer the service (NocoDB) → Google Calendar free/busy → free windows inside working hours that are long enough for the service.\n**Output:** `[{ calendar_id, slots: [{ 'slot start', 'slot end', duration }] }]`\nWorking hours and time zone are set in **Set Parameters**. Webhook (POST) is for testing.",
+        "height": 260,
+        "width": 720
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -1980
+      ],
+      "id": "6becdd6e-87d5-4405-9cfa-2d178ec6d622",
+      "name": "Note: Purpose"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Set Parameters": {
+      "main": [
+        [
+          {
+            "node": "Get Calendars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Calendars": {
+      "main": [
+        [
+          {
+            "node": "Filter by Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter by Service": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Calendars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Calendars": {
+      "main": [
+        [
+          {
+            "node": "Get Services",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Services": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Services",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Services": {
+      "main": [
+        [
+          {
+            "node": "Build Calendar List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Calendar List": {
+      "main": [
+        [
+          {
+            "node": "Get Free Busy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Free Busy": {
+      "main": [
+        [
+          {
+            "node": "Calculate Free Slots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Free Slots": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Set Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook (Free Slots)": {
+      "main": [
+        [
+          {
+            "node": "Map Webhook Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Webhook Body": {
+      "main": [
+        [
+          {
+            "node": "Set Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "nodeGroups": [],
+  "tags": []
+}
